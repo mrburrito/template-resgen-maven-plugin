@@ -53,8 +53,102 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Copies a resource file from a provided, Wagon-compliant template file, optionally performing property replacement from the configured
- * project environment.
+ * Templated Resource Generator Maven Plugin (template-resgen-maven-plugin:generate-resource).
+ * <p>
+ * The <code>generate-resource</code> goal of this plugin reads a provided resource template
+ * and writes it to a named location in the target project, replacing any Maven-style
+ * property references in the template (e.g. <code>${foo.bar}</code>) with the resolved
+ * property value.
+ *
+ * <h3>Configuration</h3>
+ *
+ * <table>
+ *   <thead>
+ *     <tr>
+ *       <th>Configuration</th>
+ *       <th>Property Key (-Dxxx)</th>
+ *       <th>Description</th>
+ *       <th>Required</th>
+ *       <th>Default</th>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr>
+ *       <td>template</td>
+ *       <td>resgen.template</td>
+ *       <td>The path to the resource template.  See <a href="#templateResolution">Template Resolution</a>.</td>
+ *       <td>true</td>
+ *       <td></td>
+ *     </tr>
+ *     <tr>
+ *       <td>templateEncoding</td>
+ *       <td>resgen.encoding</td>
+ *       <td>The encoding of the template file. (e.g. UTF-8)</td>
+ *       <td>false</td>
+ *       <td>Platform Default</td>
+ *     </tr>
+ *     <tr>
+ *       <td>outputDir</td>
+ *       <td></td>
+ *       <td>The base output directory for the generated resource.</td>
+ *       <td>false</td>
+ *       <td><code>${project.build.outputDirectory}</code></td>
+ *     </tr>
+ *     <tr>
+ *       <td>outputFile</td>
+ *       <td>resgen.outputFile</td>
+ *       <td>The relative path, from <code>outputDir</code>, for the generated resource.</td>
+ *       <td>true</td>
+ *       <td></td>
+ *     </tr>
+ *     <tr>
+ *       <td>outputEncoding</td>
+ *       <td>resgen.encoding</td>
+ *       <td>The encoding of the output file. (e.g. UTF-8)</td>
+ *       <td>false</td>
+ *       <td>Platform Default</td>
+ *     </tr>
+ *   </tbody>
+ * </table>
+ *
+ * <h3><a id="templateResolution">Template Resolution</a></h3>
+ *
+ * The plugin attempts to open the provided template (<code>${template}</code>) in the following
+ * ways, failing the build if none of these attempts is successful.
+ *
+ * <ol>
+ *   <li>Classpath Resource: <code>classpath://${template}</code></li>
+ *   <li>Absolute Path: <code>file://${template}</code></li>
+ *   <li>Relative Path from Project: <code>file://${basedir}/${template}</code></li>
+ * </ol>
+ *
+ * <h3>Property Replacement</h3>
+ *
+ * Maven-style properties (e.g. <code>${foo.bar}</code>) are replaced by their property values
+ * as resolved in the Maven project. The plugin will recognize the following values for replacement:
+ *
+ * <dl>
+ *   <dt>Environment Variables</dt>
+ *   <dd>Properties set in the Maven execution environment, typically available as <code>env.*</code>.</dd>
+ *
+ *   <dt>JVM System Properties</dt>
+ *   <dd>Properties auto-configured by the JVM (e.g. <code>java.runtime.version</code>, <code>os.arch</code>, etc.)</dd>
+ *
+ *   <dt>POM Properties</dt>
+ *   <dd>All values defined within the <code>&lt;properties&gt;</code> section of the POM and any active profiles.</dd>
+ *
+ *   <dt>Command Line Properties</dt>
+ *   <dd>Properties passed to Maven on the command line as <code>-Dkey=value</code>.</dd>
+ * </dl>
+ *
+ * Additionally, the plugin exposes the following Project Model elements for replacement.
+ *
+ * <ul>
+ *   <li>project.groupId</li>
+ *   <li>project.artifactId</li>
+ *   <li>project.version</li>
+ *   <li>project.name</li>
+ * </ul>
  *
  * @author Gordon Shankman
  */
