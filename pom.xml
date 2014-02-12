@@ -8,7 +8,7 @@
         <version>7</version>
     </parent>
 
-    <groupId>com.shankyank</groupId>
+    <groupId>com.shankyank.mojo</groupId>
     <artifactId>template-resgen-maven-plugin</artifactId>
     <version>0.9-SNAPSHOT</version>
 
