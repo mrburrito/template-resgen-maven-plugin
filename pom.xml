@@ -10,7 +10,7 @@
 
     <groupId>com.shankyank.mojo</groupId>
     <artifactId>template-resgen-maven-plugin</artifactId>
-    <version>0.10</version>
+    <version>0.11-SNAPSHOT</version>
 
     <packaging>maven-plugin</packaging>
 
@@ -36,7 +36,7 @@
         <url>https://github.com/mburrito/template-resgen-maven-plugin</url>
         <connection>scm:git:git@github.com:mrburrito/template-resgen-maven-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:mrburrito/template-resgen-maven-plugin.git</developerConnection>
-      <tag>template-resgen-maven-plugin-0.10</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <issueManagement>
