@@ -246,11 +246,11 @@ public class TemplatedResGenMojo extends AbstractMojo {
         props.putAll(project.getProperties());
         props.putAll(genProjectMetadataProps());
 
-        try (
-                BufferedReader reader = openTemplate(templateCharset);
-                BufferedWriter writer = openOutputResource(outputCharset);
-            )
-        {
+        BufferedReader reader = null;
+        BufferedWriter writer = null;
+        try {
+            reader = openTemplate(templateCharset);
+            writer = openOutputResource(outputCharset);
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
                 Matcher matcher = PROPERTY_PATTERN.matcher(line);
                 StringBuffer outBuffer = new StringBuffer("");
@@ -266,6 +266,21 @@ public class TemplatedResGenMojo extends AbstractMojo {
             }
         } catch (IOException ioe) {
             throw new MojoFailureException(String.format("Error generating target resource [%s].", outputFileName), ioe);
+        } finally {
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (IOException ioe) {
+                // ignore close exceptions
+            }
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (IOException ioe) {
+                // ignore close exceptions
+            }
         }
     }
 
@@ -292,11 +307,17 @@ public class TemplatedResGenMojo extends AbstractMojo {
     }
 
     private InputStream openTemplateFile(final File file) {
+        InputStream in;
         try {
-            return new FileInputStream(file);
-        } catch (FileNotFoundException | SecurityException ex) {
-            return null;
+            in = new FileInputStream(file);
+        } catch (FileNotFoundException fnfe) {
+            getLog().debug(String.format("Input file %s not found: %s", file.getAbsolutePath(), fnfe.getMessage()));
+            in = null;
+        } catch (SecurityException se) {
+            getLog().debug(String.format("Unable to access file %s: %s", file.getAbsolutePath(), se.getMessage()));
+            in = null;
         }
+        return in;
     }
 
     private BufferedWriter openOutputResource(final Charset charset) throws MojoFailureException {
@@ -308,8 +329,10 @@ public class TemplatedResGenMojo extends AbstractMojo {
         }
         try {
             return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(resolvedOutputFile), charset));
-        } catch (FileNotFoundException | SecurityException ex) {
-            throw new MojoFailureException(String.format("Unable to open output file [%s].", resolvedOutputFile.getPath()), ex);
+        } catch (FileNotFoundException fnfe) {
+            throw new MojoFailureException(String.format("Unable to open output file [%s].", resolvedOutputFile.getPath()), fnfe);
+        } catch (SecurityException se) {
+            throw new MojoFailureException(String.format("Unable to access output file [%s].", resolvedOutputFile.getPath()), se);
         }
     }
 
