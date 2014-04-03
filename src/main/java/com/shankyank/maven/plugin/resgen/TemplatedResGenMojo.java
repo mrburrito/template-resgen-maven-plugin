@@ -240,10 +240,10 @@ public class TemplatedResGenMojo extends AbstractMojo {
             getLog().warn(String.format("No 'outputEncoding' provided. Using system default: %s", SYSTEM_ENCODING.displayName()));
         }
 
-        Properties props = new Properties();
-        props.putAll(session.getSystemProperties());
-        props.putAll(session.getUserProperties());
-        props.putAll(project.getProperties());
+        Map<String, String> props = new HashMap<String, String>();
+        props.putAll(toMap(session.getSystemProperties()));
+        props.putAll(toMap(session.getUserProperties()));
+        props.putAll(toMap(project.getProperties()));
         props.putAll(genProjectMetadataProps());
 
         BufferedReader reader = null;
@@ -256,7 +256,10 @@ public class TemplatedResGenMojo extends AbstractMojo {
                 StringBuffer outBuffer = new StringBuffer("");
                 while (matcher.find()) {
                     String key = matcher.group(1);
-                    String replaceValue = props.getProperty(matcher.group(1), "");
+                    String replaceValue = props.get(key);
+                    if (replaceValue == null) {
+                        replaceValue = "";
+                    }
                     getLog().debug(String.format("Replacing ${%s} with %s", key, replaceValue));
                     matcher.appendReplacement(outBuffer, replaceValue);
                 }
@@ -282,6 +285,16 @@ public class TemplatedResGenMojo extends AbstractMojo {
                 // ignore close exceptions
             }
         }
+    }
+
+    private Map<String, String> toMap(final Properties props) {
+        HashMap<String, String> map = new HashMap<String, String>();
+        if (props != null) {
+            for (String key : props.stringPropertyNames()) {
+                map.put(key, props.getProperty(key));
+            }
+        }
+        return map;
     }
 
     private BufferedReader openTemplate(final Charset charset) throws MojoFailureException {
